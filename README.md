@@ -1,9 +1,3 @@
-<p align="center"><a href="https://colab.research.google.com/github/Ravylcy/MineColab/blob/master/MineColab.py"><img src="https://github.com/thecoder-001/MineColab/blob/master/Logo.png" alt="Logo" height="130"/></a></p>
-<h1 align="center">MineColab</h1>
-<p align="center">Forked By LBY_L and then Forked by veeink</p>
-<p align="center">Run Minecraft Server on Google Colab</p>
-<p align="center"><a href="https://colab.research.google.com/github/Ravylcy/MineColab/blob/master/MineColab.py"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Logo" height="30"/></a></p>
-
 # Description
 `MineColab is a script that allows you to run a Minecraft server on Google Colab. It leverages the power of Google Colab's computing resources to host and manage your Minecraft server.`
 
