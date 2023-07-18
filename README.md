@@ -4,7 +4,7 @@
 # Getting Started
 `Follow the steps below to use the script:`
 
-1. Copy the content in the MinecColab.py File and paste it in google colab.
+1. Copy the content in the MineColab.py File and paste it in google colab notebook.
 
 2. Put your ngrok authkey and run the cell by pressing `SHIFT + ENTER.`
 
