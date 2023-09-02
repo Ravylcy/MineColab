@@ -3,11 +3,6 @@ drive.mount('/content/drive')
 %cd "/content/drive/MyDrive/Minecraft-server-$suffix"
 !echo "eula=true" > eula.txt
 
-from google.colab import drive
-drive.mount('/content/drive')
-%cd "/content/drive/MyDrive/Minecraft-server-$suffix"
-!echo "eula=true" > eula.txt
-
 #@title Run the server
 #@markdown #### Choose the suffix of your server folder:
 suffix = "colab" #@param ["colab", "cts", "combat", "velocity", "flypvp", "adrip", "rizecookey", "lby", "pvp", "us", "eu", "ap", "au", "sa", "jp", "in"]
@@ -21,11 +16,11 @@ TunnelService = "ngrok" #@param ["ngrok", "playit"]
 #@markdown #### If you selected Ngrok, provide your Ngrok Auth Token:
 NgrokAuthToken = "" #@param {type:"string"}
 #@markdown #### Choose the region where your Minecraft server will be hosted:
-NgrokRegion = "ap" #@param ["us", "eu", "ap", "au", "sa", "jp", "in", "None"]
+NgrokRegion = "jp" #@param ["us", "eu", "ap", "au", "sa", "jp", "in", "None"]
 #@markdown #### Choose the amount of RAM to allocate (in GB):
-RAMAllocation = 8 #@param {type:"slider", min:1, max:8, step:1}
+RAMAllocation = 12 # @param {type:"slider", min:1, max:12, step:1}
 #@markdown #### Enable GPU acceleration
-UseGPU = True #@param {type:"boolean"}
+UseGPU = False #@param {type:"boolean"}
 
 from google.colab import drive
 from IPython.core.display import display, HTML, clear_output
