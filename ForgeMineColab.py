@@ -14,7 +14,7 @@ JarName = "start_server.bat" #@param {type:"string"}
 #@markdown #### Choose the tunneling service:
 TunnelService = "ngrok" #@param ["ngrok", "playit"]
 #@markdown #### If you selected Ngrok, provide your Ngrok Auth Token:
-NgrokAuthToken = "20etqRLRX3IOsPDfoGrlMGO6VHV_7ULxc8b7VGupNfhJjMfzN" #@param {type:"string"}
+NgrokAuthToken = "" #@param {type:"string"}
 #@markdown #### Choose the region where your Minecraft server will be hosted:
 NgrokRegion = "ap" #@param ["us", "eu", "ap", "au", "sa", "jp", "in", "None"]
 
@@ -68,6 +68,21 @@ def progress(value, max=100):
 
 out = display(progress(0, 100), display_id=True)
 
+# Start the server
+subprocess.run(["python", "-c", "'while True:pass'"])
+if TunnelService == "ngrok":
+    !pip -q install pyngrok &>/dev/null
+    from pyngrok import conf, ngrok
+    # Set ngrok authtoken
+    !ngrok authtoken $NgrokAuthToken &>/dev/null
+    # Set default ngrok region
+    conf.get_default().region = NgrokRegion
+    # Connect to ngrok
+    url = ngrok.connect(25565, 'tcp')
+    print('Your server address is ' + ((str(url).split('"')[1::2])[0]).replace('tcp://', ''))
+    sleep_and_clear_output(3)
+    console()
+
 # Create eula.txt
 !echo "eula=true" > eula.txt
 
@@ -83,28 +98,3 @@ java_path=/usr/lib/jvm/java-17-openjdk-amd64/bin/java
 
 # Ensure the start_server.bat is executable (if needed)
 !chmod +x start_server.bat
-
-# Create the progress bar
-out = display(progress(0, 100), display_id=True)
-
-# Start the server using the Forge Server Starter JAR
-subprocess.run(["java", "-jar", "minecraft_server_v3.5.7.jar"])
-
-if TunnelService == "ngrok":
-    !pip -q install pyngrok &>/dev/null
-    update_progress_bar(16.7)
-    from pyngrok import conf, ngrok
-    update_progress_bar(33.4)
-    # Set ngrok authtoken
-    !ngrok authtoken $NgrokAuthToken &>/dev/null
-    update_progress_bar(50.1)
-    # Set default ngrok region
-    conf.get_default().region = NgrokRegion
-    update_progress_bar(66.8)
-    # Connect to ngrok
-    url = ngrok.connect(25565, 'tcp')
-    update_progress_bar(83.5)
-    print('Your server address is ' + ((str(url).split('"')[1::2])[0]).replace('tcp://', ''))
-    update_progress_bar(100.2)
-    sleep_and_clear_output(3)
-    console()
