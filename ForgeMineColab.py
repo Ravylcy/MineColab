@@ -3,20 +3,13 @@ drive.mount('/content/drive')
 %cd "/content/drive/MyDrive/Minecraft-server-forge"
 !echo "eula=true" > eula.txt
 
-from google.colab import drive
-drive.mount('/content/drive')
-%cd "/content/drive/MyDrive/Minecraft-server-forge"
-!echo "eula=true" > eula.txt
-
 #@title Run the server
 #@markdown #### Enter the name of your server jar:
 JarName = "start_server.bat" #@param {type:"string"}
 #@markdown #### Choose the tunneling service:
 TunnelService = "ngrok" #@param ["ngrok", "playit"]
 #@markdown #### If you selected Ngrok, provide your Ngrok Auth Token:
-NgrokAuthToken = "" #@param {type:"string"}
-#@markdown #### Choose the region where your Minecraft server will be hosted:
-NgrokRegion = "ap" #@param ["us", "eu", "ap", "au", "sa", "jp", "in", "None"]
+NgrokAuthToken = "20etqRLRX3IOsPDfoGrlMGO6VHV_7ULxc8b7VGupNfhJjMfzN" #@param {type:"string"}
 
 from google.colab import drive
 from IPython.core.display import display, HTML, clear_output
@@ -76,7 +69,7 @@ if TunnelService == "ngrok":
     # Set ngrok authtoken
     !ngrok authtoken $NgrokAuthToken &>/dev/null
     # Set default ngrok region
-    conf.get_default().region = NgrokRegion
+    conf.get_default().region = "ap"  # Change to your closest region
     # Connect to ngrok
     url = ngrok.connect(25565, 'tcp')
     print('Your server address is ' + ((str(url).split('"')[1::2])[0]).replace('tcp://', ''))
