@@ -9,7 +9,7 @@ JarName = "start_server.bat" #@param {type:"string"}
 #@markdown #### Choose the tunneling service:
 TunnelService = "ngrok" #@param ["ngrok", "playit"]
 #@markdown #### If you selected Ngrok, provide your Ngrok Auth Token:
-NgrokAuthToken = "20etqRLRX3IOsPDfoGrlMGO6VHV_7ULxc8b7VGupNfhJjMfzN" #@param {type:"string"}
+NgrokAuthToken = "" #@param {type:"string"}
 
 from google.colab import drive
 from IPython.core.display import display, HTML, clear_output
