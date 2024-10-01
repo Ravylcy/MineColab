@@ -1,89 +1,190 @@
-from google.colab import drive
-drive.mount('/content/drive')
-%cd "/content/drive/MyDrive/Minecraft-server-java"
-!echo "eula=true" > eula.txt
-
-from google.colab import drive
-drive.mount('/content/drive')
-%cd "/content/drive/MyDrive/Minecraft-server-java"
-!echo "eula=true" > eula.txt
-
-#@title Run the server
-#@markdown #### Enter the name of your server jar:
-JarName = "server" #@param {type:"string"}
-#@markdown #### Choose the tunneling service:
-TunnelService = "ngrok" #@param ["ngrok", "playit"]
-#@markdown #### If you selected Ngrok, provide your Ngrok Auth Token:
-NgrokAuthToken = "" #@param {type:"string"}
-#@markdown #### Choose the region where your Minecraft server will be hosted:
-NgrokRegion = "ap" #@param ["us", "eu", "ap", "au", "sa", "jp", "in", "None"]
-
-from google.colab import drive
-from IPython.core.display import display, HTML, clear_output
+# @title Claude AI
 import subprocess
 import time
+import os
+import threading
+import signal
+from IPython.display import display, HTML, clear_output
+from google.colab import drive
 
-def update_progress_bar(progress):
-    out.update(progress_bar(progress, 100))
+# Constants
+DRIVE_PATH = "/content/drive/MyDrive/Minecraft-server-java"
+JAVA_VERSIONS = ["8", "17", "21"]
+SERVER_JAR = "paper-1.21-130.jar"
 
-def sleep_and_clear_output(seconds):
-    time.sleep(seconds)
-    clear_output()
+# Global variables
+running = True
+process = None
 
-def console():
-    display(HTML(''))
+# Function to run shell commands and handle errors
+def run_command(command, success_msg, error_msg):
+    try:
+        subprocess.run(command, check=True, shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+        print(success_msg)
+    except subprocess.CalledProcessError:
+        print(error_msg)
+
+# Function to display HTML content
+def display_image(url, width, height):
+    display(HTML(f'<p><img style="display: block; margin-left: auto; margin-right: auto;" src="{url}" alt="Server Image" width="{width}" height="{height}" /></p>'))
 
 # Mount Google Drive
 drive.mount('/content/drive')
 
-sleep_and_clear_output(0)
+# Create and change to Minecraft server directory
+os.makedirs(DRIVE_PATH, exist_ok=True)
+os.chdir(DRIVE_PATH)
 
-# Change directory to the Minecraft server folder on Google Drive
-!mkdir "/content/drive/MyDrive/Minecraft-server-java"
-%cd "/content/drive/MyDrive/Minecraft-server-java"
+# Create eula.txt
+with open("eula.txt", "w") as f:
+    f.write("eula=true")
 
-sleep_and_clear_output(0)
+# Install Java versions
+print("Installing Java versions...")
+run_command("sudo apt update", "apt cache successfully updated", "apt cache update failed, you might receive stale packages")
+for version in JAVA_VERSIONS:
+    run_command(f"sudo apt-get install -y openjdk-{version}-jre-headless", 
+                f"OpenJDK {version} has been installed successfully.", 
+                f"Failed to install OpenJDK {version}.")
 
-# Install Java Versions (8, 17)
-!sudo apt update &>/dev/null && echo "apt cache successfully updated" || echo "apt cache update failed, you might receive stale packages"
-!sudo apt-get install openjdk-17-jre-headless &>/dev/null && echo "OpenJDK 17 has been installed successfully." || echo "Failed to install OpenJDK 17."
-!sudo apt-get install openjdk-8-jre-headless &>/dev/null && echo "OpenJDK 8 has been installed successfully." || echo "Failed to install OpenJDK 8."
+# Display starting server image
+display_image("https://github.com/LBY-L/MineColab/blob/master/COLAB-26-11-2022.png?raw=true", 327, 91)
 
-sleep_and_clear_output(0)
+# Set up tunneling service
+tunnel_service = "playit"  # Change this to "ngrok" if you prefer ngrok
+ngrok_auth_token = "YOUR_NGROK_AUTH_TOKEN"  # Replace with your actual token if using ngrok
 
-# Display the Starting server text
-display(HTML('<p><img style="display: block; margin-left: auto; margin-right: auto;" src="https://github.com/LBY-L/MineColab/blob/master/COLAB-26-11-2022.png?raw=true" alt="COLAB-26-11-2022.png" width="327" heig<p><img style="display: block; margin-left: auto; margin-right: auto;" src="https://github.com/LBY-L/MineColab/blob/master/Starting-Serever-12-12-2022.png?raw=true" alt="Starting-Serever-12-12-2022.png" width="335" height="91" /></p>'))
-def progress(value, max=100):
-    return HTML("""
-        <progress
-            value='{value}'
-            max='{max}',
-            style='width: 100%'
-        >
-            {value}
-        </progress>
-    """.format(value=value, max=max))
-
-out = display(progress(0, 100), display_id=True)
-
-# Start the server
-subprocess.run(["python", "-c", "'while True:pass'"])
-if TunnelService == "ngrok":
-    !pip -q install pyngrok &>/dev/null
-    update_progress_bar(16.7)
+if tunnel_service == "ngrok":
+    print("Setting up ngrok...")
+    run_command("pip install pyngrok", "pyngrok installed successfully", "Failed to install pyngrok")
     from pyngrok import conf, ngrok
-    update_progress_bar(33.4)
-    # Set ngrok authtoken
-    !ngrok authtoken $NgrokAuthToken &>/dev/null
-    update_progress_bar(50.1)
-    # Set default ngrok region
-    conf.get_default().region = NgrokRegion
-    update_progress_bar(66.8)
-    # Connect to ngrok
+    ngrok.set_auth_token(ngrok_auth_token)
+    conf.get_default().region = "ap"  # Change to your closest region
     url = ngrok.connect(25565, 'tcp')
-    update_progress_bar(83.5)
-    print('Your server address is ' + ((str(url).split('"')[1::2])[0]).replace('tcp://', ''))
-    update_progress_bar(100.2)
-    sleep_and_clear_output(3)
-    console()
-    !java -Xmx12G ${server_flags} -Djava.awt.headless=true -jar server.jar nogui
+    print(f"Your server address is {url.public_url.replace('tcp://', '')}")
+elif tunnel_service == "playit":
+    print("Setting up PlayIt...")
+    run_command("curl -SsL https://playit-cloud.github.io/ppa/key.gpg | sudo apt-key add -", "PlayIt key added", "Failed to add PlayIt key")
+    run_command("sudo curl -SsL -o /etc/apt/sources.list.d/playit-cloud.list https://playit-cloud.github.io/ppa/playit-cloud.list", "PlayIt source list added", "Failed to add PlayIt source list")
+    run_command("sudo apt update && sudo apt install -y playit", "PlayIt installed", "Failed to install PlayIt")
+    subprocess.Popen(["nohup", "playit"], stdout=open("playit_output.log", "w"), stderr=subprocess.STDOUT)
+    time.sleep(10)  # Wait for PlayIt to initialize
+    with open("playit_output.log", "r") as f:
+        print("PlayIt tunnel information:")
+        print("\n".join(f.readlines()[-4:]))  # Display the last 4 lines of the log
+
+# Display console image
+display_image("https://github.com/LBY-L/MineColab/blob/master/CONSOLE-12-12-2022.png?raw=true", 511, 175)
+
+# Function to handle server output with timestamp
+def output_reader(process):
+    global running
+    start_time = time.time()
+    while running:
+        try:
+            line = process.stdout.readline()
+            if line:
+                elapsed_time = time.time() - start_time
+                print(f"[{elapsed_time:.2f}s] [SERVER] {line.strip()}")
+            else:
+                time.sleep(0.1)  # Short sleep to prevent CPU overuse
+        except Exception as e:
+            print(f"Error reading output: {e}")
+            break
+
+# Function to handle user input
+def input_handler(process):
+    global running
+    while running:
+        try:
+            command = input("Enter a command (or 'stop' to quit): ")
+            if command.lower() == "stop":
+                process.stdin.write(f"{command}\n")
+                process.stdin.flush()
+                break
+            if process.poll() is None:  # Check if the process is still running
+                process.stdin.write(f"{command}\n")
+                process.stdin.flush()
+                print(f"[YOU] {command}")
+            else:
+                print("Server process has terminated. Cannot send command.")
+                break
+        except EOFError:
+            break
+        except BrokenPipeError:
+            print("Server process has terminated. Cannot send command.")
+            break
+        except Exception as e:
+            print(f"Error handling input: {e}")
+
+# Function to handle graceful shutdown
+def shutdown(signum, frame):
+    global running, process
+    running = False
+    print("\nShutting down the Minecraft server...")
+    if process and process.poll() is None:
+        try:
+            process.stdin.write("stop\n")
+            process.stdin.flush()
+        except:
+            pass  # Ignore errors when trying to send stop command
+        try:
+            process.wait(timeout=30)  # Wait up to 30 seconds for the server to stop
+        except subprocess.TimeoutExpired:
+            print("Server didn't stop gracefully. Forcing termination.")
+            process.terminate()
+
+# Register the shutdown function
+signal.signal(signal.SIGINT, shutdown)
+
+# Start Minecraft server
+print("Starting Minecraft server...")
+java_args = [
+    "java", "-Xms6G", "-Xmx12G",  # Reduced memory allocation
+    "-jar", SERVER_JAR, "nogui"
+]
+
+# Function to handle server output with timestamp
+def output_reader(process):
+    global running
+    start_time = time.time()
+    while running:
+        line = process.stdout.readline()
+        if line:
+            elapsed_time = time.time() - start_time
+            print(f"[{elapsed_time:.2f}s] [SERVER] {line.strip()}")
+        else:
+            time.sleep(0.1)  # Short sleep to prevent CPU overuse
+
+try:
+    process = subprocess.Popen(java_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1, universal_newlines=True)
+    
+    # Start threads for handling output and input
+    output_thread = threading.Thread(target=output_reader, args=(process,))
+    input_thread = threading.Thread(target=input_handler, args=(process,))
+    
+    output_thread.start()
+    input_thread.start()
+    
+    # Wait for the process to complete
+    process.wait()
+    
+    # Signal threads to stop
+    running = False
+    
+    # Wait for threads to finish
+    output_thread.join()
+    input_thread.join()
+
+except KeyboardInterrupt:
+    shutdown(None, None)
+
+except Exception as e:
+    print(f"An error occurred: {e}")
+    shutdown(None, None)
+
+print("Minecraft server has stopped.")
+
+# Clean up ngrok tunnel if it was used
+if tunnel_service == "ngrok":
+    ngrok.kill()
